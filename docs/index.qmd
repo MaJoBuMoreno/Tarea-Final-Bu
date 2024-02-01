@@ -1,6 +1,180 @@
 ---
-title: "TFinal_Bu"
+title: "Compilacion de tareas"
 author: "Maria Jose Bu Moreno"
 format: html
 editor: visual
 ---
+
+::: panel-tabset
+
+## Ejericio 1
+
+```{r}
+  # cargar una base de datos 
+  
+penguins <- (read.csv("data/penguins_size.csv"))
+
+# Filtrado de datos hembras 
+
+table(penguins$sex)
+
+penguins2 <- penguins %>%
+  filter(sex == "FEMALE")
+
+# Seleccion de variable (isla)
+
+
+# 52 observaciones en Torgesen
+
+penguins3 <- penguins %>% 
+  select(island) %>% 
+  filter(island == "Torgersen")
+
+# 24 hembras en Torgersen
+
+penguins4 <- penguins2 %>% 
+  select(island) %>% 
+  filter(island == "Torgersen")
+
+# Resumen por hembra y isla Torgersen
+
+penguins5 <- penguins %>% 
+  group_by(sex, island) %>% 
+  summarise(mediapeso = mean(body_mass_g)) %>% 
+  ggplot(aes(x = sex, y = mediapeso))+
+  geom_col(width = 0.4, fill = "lightskyblue3")+
+  labs(title = "Relacion de sexo con el peso en Penguins")+
+  theme_minimal()
+
+penguins5
+```
+
+
+##Ejericio 2
+
+```{r}
+
+{r}
+
+catrate <- read.csv("data/catrate.csv")
+head(catrate)
+
+
+catrate2 <- catrate %>%
+  mutate(year = as.factor(years)) %>%
+  select (year, pond, cat.rate) %>%
+  ggplot(aes(x = year, y = cat.rate)) +
+  labs(title = "Cat Rate anual")+
+  geom_bar(stat = "identity", fill = "darkgreen") +
+  theme_classic()
+
+catrate2
+
+```
+
+
+## Ejericio 3
+
+```{r}
+
+# Cargando base de datos de Replic 1, 2 y 3
+
+visita1 <- read.csv2("data/Replic1_birds.csv")
+visita2 <- read.csv2("data/Replic2_birds.csv")
+visita3 <- read.csv2("data/Replic3_birds.csv")
+
+view(visita1)
+view(visita2)
+view(visita3)
+
+# Renombrar nombres de las bases de datos
+
+visitaclean1 <- visita1 %>%
+  rename("Sitio" = "Site",
+         "HabitatSitio" = "Sitio..",
+         "Fecha" = "Fecha..m.d.a.",
+         "Abundancia" = "Num..0.50",
+         "Hora" = "Hora.0.00.24.00.") %>%
+  select(Sitio, HabitatSitio, Fecha, Especies, Abundancia, Hora, Viento, Cielo, Rio, Sequence)
+
+visitaclean2 <- visita2 %>%
+  rename("Sitio" = "Sitio..",
+         "HabitatSitio" = "Sitio...1",
+         "Fecha" = "Fecha..m.d.a.", 
+         "Abundancia" = "Num..0.50",
+         "Hora" = "Hora.0.00.24.00.") %>%
+  select(Sitio, HabitatSitio, Fecha, Especies, Abundancia, Hora, Viento, Cielo, Rio, Sequence)
+
+visitaclean3 <- visita3 %>%
+  rename("Sitio" = "Sitio..",
+         "HabitatSitio" = "Sitio...1",
+         "Fecha" = "Fecha..m.d.a.",
+         "Abundancia" = "Num..0.50",
+         "Hora" = "Hora.0.00.24.00.") %>%
+  select(Sitio, HabitatSitio, Fecha, Especies, Abundancia, Hora, Viento, Cielo, Rio, Sequence)
+
+
+# Union de bases de datos de Visita 1, 2 y 3
+
+visitafinal <- rbind(visitaclean1, visitaclean2, visitaclean3)
+
+view(visitafinal)
+head(visitafinal)
+
+
+# Agrupamiento de variables de visitafinal
+
+Avesvegan <- visitafinal %>%
+  group_by(Sitio, HabitatSitio, Fecha, Hora, Cielo, Viento, Rio, Especies) %>%
+  summarise(Abundancia = max(Abundancia)) %>%
+  pivot_wider(names_from = Especies,
+              values_from = Abundancia,
+              values_fill = 0)
+
+# Cargando base de datos de vegetacion 
+
+Arboles <- read.csv2("data/TreesQ.csv")
+Habitat <- read.csv2("data/VegData.csv")
+Cobertura <- read.csv2("data/HistQ.csv")
+
+
+Area_basal <- Arboles %>% 
+  group_by(VEGID, Species) %>% 
+  summarise(Area_Basal = 2*(A* 0.1 + B* 0.3 + C* 0.8 + D*1.8 + E*3.1 + F *4.9 + G*7.1 + H*0.05 )) %>%
+  summarise(Area_basal = sum(Area_basal))
+
+Area_basal <- Arboles %>% 
+  group_by(VEGID) %>% 
+  summarise(Area_Basal = 2*(A* 0.1 + B* 0.3 + C* 0.8 + D*1.8 + E*3.1 + F *4.9 + G*7.1 + H*0.05 )) %>%
+  summarise(Area_Basal = sum(Area_Basal))
+
+CoberturaSum <- Cobertura%>% 
+  group_by(VEGID) %>% 
+  summarise(Group_cover = sum(A, na.rm = TRUE)+sum(B, na.rm = TRUE)+sum(C, na.rm = TRUE),
+            Subcanopy = sum(D, na.rm = TRUE) + sum(E, na.rm = TRUE))
+
+
+# Union de area basal y cobertura 
+
+HabitatFull <- Habitat %>%
+  left_join(Area_basal, by = "VEGID") %>%
+  left_join(CoberturaSum, by = "VEGID")
+
+TablaFinal <- HabitatFull %>%
+  mutate(Sitio = factor(Site)) %>%
+  full_join(Avesvegan, by = "Sitio")
+
+# Cargando grafico para variable de vegetacion con OREPER
+
+ggplot(data = TablaFinal, aes(x= Area_Basal, y= OREPER)) +
+  geom_point(aes(color= Type)) +
+  stat_smooth(method = glm, 
+              method.args = list(family = "poisson"),
+              aes(fill = Type))+
+  labs(title = "Area Basal de Oreothlypis peregrina")+
+  theme_update()
+
+
+```
+:::
+
