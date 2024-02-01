@@ -66,7 +66,7 @@ catrate2 <- catrate %>%
   select (year, pond, cat.rate) %>%
   ggplot(aes(x = year, y = cat.rate)) +
   labs(title = "Cat Rate anual")+
-  geom_bar(stat = "identity", fill = "darkgreen") +
+  geom_bar(stat = "identity", fill = "azure2") +
   theme_classic()
 
 catrate2
