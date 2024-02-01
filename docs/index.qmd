@@ -12,6 +12,8 @@ editor: visual
 ```{r}
   # cargar una base de datos 
   
+library(tidyverse)
+
 penguins <- (read.csv("data/penguins_size.csv"))
 
 # Filtrado de datos hembras 
@@ -50,11 +52,10 @@ penguins5
 ```
 
 
-##Ejericio 2
+## Ejericio 2
 
 ```{r}
 
-{r}
 
 catrate <- read.csv("data/catrate.csv")
 head(catrate)
@@ -140,7 +141,7 @@ Cobertura <- read.csv2("data/HistQ.csv")
 
 Area_basal <- Arboles %>% 
   group_by(VEGID, Species) %>% 
-  summarise(Area_Basal = 2*(A* 0.1 + B* 0.3 + C* 0.8 + D*1.8 + E*3.1 + F *4.9 + G*7.1 + H*0.05 )) %>%
+  summarise(Area_basal = 2*(A* 0.1 + B* 0.3 + C* 0.8 + D*1.8 + E*3.1 + F *4.9 + G*7.1 + H*0.05 )) %>%
   summarise(Area_basal = sum(Area_basal))
 
 Area_basal <- Arboles %>% 
